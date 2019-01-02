@@ -97,13 +97,13 @@ class FM(BaseEstimator, TransformerMixin):
             # Model.
             # get the summed up embeddings of features.
             self.nonzero_embeddings = tf.nn.embedding_lookup(self.weights['feature_embeddings'], self.train_features, name='nonzero_embeddings')
-            self.summed_features_emb = tf.reduce_sum(self.nonzero_embeddings, 1, keep_dims=True) # None * 1 * K
+            self.summed_features_emb = tf.reduce_sum(self.nonzero_embeddings, 1, keepdims=True) # None * 1 * K
             # get the element-multiplication
             self.summed_features_emb_square = tf.square(self.summed_features_emb)  # None * 1 * K
 
             # _________ square_sum part _____________
             self.squared_features_emb = tf.square(self.nonzero_embeddings)
-            self.squared_sum_features_emb = tf.reduce_sum(self.squared_features_emb, 1, keep_dims=True)  # None * 1 * K
+            self.squared_sum_features_emb = tf.reduce_sum(self.squared_features_emb, 1, keepdims=True)  # None * 1 * K
 
             # ________ FM __________
             self.FM = 0.5 * tf.subtract(self.summed_features_emb_square, self.squared_sum_features_emb, name="fm")  # None * 1 * K
@@ -118,9 +118,9 @@ class FM(BaseEstimator, TransformerMixin):
             # _________out _________
             if self.micro_level_analysis:
                 # ml-tag has 3 interactions. divided by 3 to make sure that the total weight of the sum is 1
-                self.out = tf.reduce_sum(self.FM_OUT, 1, keep_dims=True, name="out")  # None * 1
+                self.out = tf.reduce_sum(self.FM_OUT, 1, keepdims=True, name="out")  # None * 1
             else:
-                Bilinear = tf.reduce_sum(self.FM_OUT, 1, keep_dims=True)  # None * 1
+                Bilinear = tf.reduce_sum(self.FM_OUT, 1, keepdims=True)  # None * 1
                 self.Feature_bias = tf.reduce_sum(tf.nn.embedding_lookup(self.weights['feature_bias'], self.train_features) , 1)  # None * 1
                 Bias = self.weights['bias'] * tf.ones_like(self.train_labels)  # None * 1
                 self.out = tf.add_n([Bilinear, self.Feature_bias, Bias], name="out")  # None * 1
@@ -156,7 +156,7 @@ class FM(BaseEstimator, TransformerMixin):
                     variable_parameters *= dim.value
                 total_parameters += variable_parameters
             if self.verbose > 0:
-                print "#params: %d" %total_parameters 
+                print ("#params: %d" %total_parameters)
     
     def _init_session(self):
         # adaptively growing video memory
@@ -239,11 +239,11 @@ class FM(BaseEstimator, TransformerMixin):
             init_valid = self.evaluate(Validation_data)
             print("Init: \t train=%.4f, validation=%.4f [%.1f s]" %(init_train, init_valid, time()-t2))
 
-        for epoch in xrange(self.epoch):
+        for epoch in range(self.epoch):
             t1 = time()
             self.shuffle_in_unison_scary(Train_data['X'], Train_data['Y'])
             total_batch = int(len(Train_data['Y']) / self.batch_size)
-            for i in xrange(total_batch):
+            for i in range(total_batch):
                 # generate a batch
                 batch_xs = self.get_random_block_from_data(Train_data, self.batch_size)
                 # Fit training
@@ -264,7 +264,7 @@ class FM(BaseEstimator, TransformerMixin):
                 break
 
         if self.pretrain_flag < 0:
-            print "Save model to file as pretrain."
+            print ("Save model to file as pretrain.")
             self.saver.save(self.sess, self.save_file)
 
     def eva_termination(self, valid):
